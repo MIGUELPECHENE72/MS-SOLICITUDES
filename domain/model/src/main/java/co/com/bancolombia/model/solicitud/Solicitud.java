@@ -19,7 +19,8 @@ public class Solicitud {
 
     private Integer plazo;
 
-    private Integer tipo; //Pendiente por validar dimencion
+    private Integer tipo; //Pendiente por validar dimencion (1 = Credito)
 
-    private Integer estado; //Pendiente por validar dimencion
+    private Integer estado; //Pendiente por validar dimencion (1 = Pendiente de revisión)
+
 }
