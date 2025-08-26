@@ -12,6 +12,7 @@ public class SolicitudUseCase {
     private final SolicitudRepository solicitudRepository;
 
     public Mono<Solicitud> create(Solicitud solicitud) {
+        //
         return solicitudRepository.save(solicitud);
     }
 

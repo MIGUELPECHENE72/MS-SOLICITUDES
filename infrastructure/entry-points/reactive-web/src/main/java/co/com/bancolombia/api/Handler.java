@@ -6,9 +6,10 @@ import co.com.bancolombia.api.dto.SolicitudDTO;
 import co.com.bancolombia.api.mapper.SolicitudDTOMapper;
 import co.com.bancolombia.api.util.RequestValidator;
 import co.com.bancolombia.usecase.solicitud.SolicitudUseCase;
+import co.com.bancolombia.usecase.solicitudDTO.SolicitudDTOUseCase;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.http.MediaType;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.reactive.TransactionalOperator;
 import org.springframework.web.reactive.function.server.ServerRequest;
@@ -20,7 +21,9 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class Handler {
 
-    private  final SolicitudUseCase solicitudUseCase;
+    private final SolicitudUseCase solicitudUseCase;
+
+    private final SolicitudDTOUseCase solicitudDTOUseCase;
 
     private final SolicitudDTOMapper solicitudDTOMapper;
 
@@ -34,8 +37,24 @@ public class Handler {
 
         return solicitudUseCase.getById(id)
                 .flatMap(solicitud -> ServerResponse.ok()
-                        .contentType(MediaType.APPLICATION_JSON)
+                        .contentType(APPLICATION_JSON)
                         .bodyValue(solicitudDTOMapper.toResponse(solicitud))
+                )
+                .switchIfEmpty(ServerResponse.notFound().build()); // Si no se encuentra, devolver un 404
+
+    }
+
+    public Mono<ServerResponse> listenGetSolicitudDTOById(ServerRequest serverRequest) {
+
+        Long id = Long.parseLong(serverRequest.pathVariable("id"));
+
+        return solicitudDTOUseCase.getById(id)
+                .flatMap(solicitudDTO -> ServerResponse.ok()
+                        .contentType(APPLICATION_JSON)
+                        .bodyValue(
+                                //solicitudDTOMapper.toResponse(solicitud)
+                                solicitudDTO
+                        )
                 )
                 .switchIfEmpty(ServerResponse.notFound().build()); // Si no se encuentra, devolver un 404
 
@@ -43,7 +62,7 @@ public class Handler {
 
     public Mono<ServerResponse> listenGetAllSolicitudes(ServerRequest serverRequest) {
         return ServerResponse.ok()
-                .contentType(MediaType.APPLICATION_JSON)
+                .contentType(APPLICATION_JSON)
                 .body(solicitudUseCase.getAll(), SolicitudDTO.class);
     }
 
@@ -57,7 +76,7 @@ public class Handler {
                                         .transform(transactionalOperator::transactional)
                                 )
                                 .flatMap(saved -> ServerResponse.ok()
-                                        .contentType(MediaType.APPLICATION_JSON)
+                                        .contentType(APPLICATION_JSON)
                                         .bodyValue(solicitudDTOMapper.toResponse(saved))
                                 )
                 )
@@ -71,11 +90,11 @@ public class Handler {
                 .flatMap(editSolicitudDTO ->
                         requestValidator.validadorSolicitud(editSolicitudDTO)
                                 .flatMap(validatedDTO -> solicitudUseCase.update(
-                                                solicitudDTOMapper.toModel(validatedDTO))
+                                        solicitudDTOMapper.toModel(validatedDTO))
                                         .transform(transactionalOperator::transactional)
                                 )
                                 .flatMap(saved -> ServerResponse.ok()
-                                        .contentType(MediaType.APPLICATION_JSON)
+                                        .contentType(APPLICATION_JSON)
                                         .bodyValue(solicitudDTOMapper.toResponse(saved))
                                 )
                 )
@@ -87,7 +106,7 @@ public class Handler {
     private Mono<ServerResponse> handleError(Throwable e) {
         log.error("*****Ha ocurrido un error de validación: {}", e.getMessage(), e);
         return ServerResponse.badRequest()
-                .contentType(MediaType.APPLICATION_JSON)
+                .contentType(APPLICATION_JSON)
                 .bodyValue("Error de validación: " + e.getMessage());
     }
 }

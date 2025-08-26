@@ -1,4 +1,4 @@
-package co.com.bancolombia.r2dbc.entity;
+package co.com.bancolombia.r2dbc.entity.tipoSolicitud;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -7,26 +7,18 @@ import lombok.Setter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Table;
 
-import java.math.BigDecimal;
-
 @Setter
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table("solicitud")
-public class SolicitudEntity {
+@Table("tipo_solicitud")
+public class TipoSolicitudEntity {
 
     @Id
-    private Long id;
+    private Integer id;
 
-    private String identificacion;
+    private String nombre;
 
-    private BigDecimal monto;
-
-    private Integer plazo;
-
-    private Integer tipo;
-
-    private Integer estado;
+    private String estado;
 
 }
