@@ -7,6 +7,9 @@ import co.com.bancolombia.api.mapper.SolicitudDTOMapper;
 import co.com.bancolombia.api.util.RequestValidator;
 import co.com.bancolombia.usecase.solicitud.SolicitudUseCase;
 import co.com.bancolombia.usecase.solicitudDTO.SolicitudDTOUseCase;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -66,6 +69,11 @@ public class Handler {
                 .body(solicitudUseCase.getAll(), SolicitudDTO.class);
     }
 
+    @Operation(summary = "Crear una nueva solicitud", description = "Este endpoint crea una nueva solicitud en el sistema.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Solicitud creada correctamente"),
+            @ApiResponse(responseCode = "400", description = "Solicitud no válida")
+    })
     public Mono<ServerResponse> listenSaveSolicitud(ServerRequest serverRequest) {
         return serverRequest.bodyToMono(CreateSolicitudDTO.class)
                 .doOnSubscribe(subscription -> log.info("******Inicia llamado a crear solicitud"))

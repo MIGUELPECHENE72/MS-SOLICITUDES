@@ -36,7 +36,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "localhost:8081/api/v1/solicitudDTO/2",
+							"raw": "localhost:8081/api/v1/solicitudDTO/5",
 							"host": [
 								"localhost"
 							],
@@ -45,7 +45,7 @@
 								"api",
 								"v1",
 								"solicitudDTO",
-								"2"
+								"5"
 							]
 						}
 					},
@@ -58,7 +58,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"identificacion\": \"1007779304\",\n    \"monto\": 1000000.00,\n    \"plazo\": 6,\n    \"tipo\": 1,\n    \"estado\": 1\n}",
+							"raw": "{\n    \"identificacion\": \"1007779305\",\n    \"monto\": 1250000.00,\n    \"plazo\": 6,\n    \"tipo\": 3\n}",
 							"options": {
 								"raw": {
 									"language": "json"
