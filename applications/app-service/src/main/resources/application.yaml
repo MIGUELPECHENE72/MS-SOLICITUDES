@@ -34,6 +34,7 @@ management:
 cors:
   allowed-origins: "http://localhost:4200,http://localhost:8080"
 springdoc:
+  #packages-to-scan: co.com.bancolombia.api.RouterRest
   api-docs:
     enabled: true
   swagger-ui:
