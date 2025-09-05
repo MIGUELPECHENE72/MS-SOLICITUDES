@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
+
 @RequiredArgsConstructor
 public class SolicitudUseCase {
 
@@ -29,6 +31,10 @@ public class SolicitudUseCase {
 
     public Mono<Solicitud> getById(Long id){
         return solicitudRepository.findById(id);
+    }
+
+    public Flux<Solicitud> getByEstadoIn(List<Integer> idEstados, Integer page, Integer size){
+        return solicitudRepository.findByEstadoIn(idEstados, page, size);
     }
 
 }
