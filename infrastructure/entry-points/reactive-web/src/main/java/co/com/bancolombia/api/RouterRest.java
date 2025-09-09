@@ -3,6 +3,7 @@ package co.com.bancolombia.api;
 import co.com.bancolombia.api.dto.CreateSolicitudDTO;
 import co.com.bancolombia.api.dto.EditSolicitudDTO;
 import co.com.bancolombia.api.dto.SolicitudDTO;
+import co.com.bancolombia.api.util.exception.ErrorResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -414,6 +415,99 @@ public class RouterRest {
                                     @ApiResponse(responseCode = "404", description = "Solicitud no encontrada")
                             }
                     )
+            ),
+            @RouterOperation(
+                    path = "/api/v1/solicitud/aprobar",
+                    produces = { "application/json" },
+                    method = RequestMethod.PUT,
+                    beanClass = Handler.class,
+                    beanMethod = "listenAprobarSolicitud",
+                    operation = @Operation(
+                            operationId = "aprobarSolicitud",
+                            summary = "Aprueba una solicitud manualmente",
+                            tags = { "solicitud" },
+                            requestBody = @RequestBody(
+                                    description = "Datos necesarios para aprobar una solicitud",
+                                    required = true,
+                                    content = @Content(
+                                            mediaType = "application/json",
+                                            schema = @Schema(implementation = EditSolicitudDTO.class),
+                                            examples = @ExampleObject(
+                                                    name = "Ejemplo de body",
+                                                    value = """
+                                                    {
+                                                        "id": 1,
+                                                        "identificacion": "1007779304",
+                                                        "monto": 5000000,
+                                                        "plazo": 12,
+                                                        "tipo": 1,
+                                                        "estado": 1
+                                                    }
+                                                    """
+                                            )
+                                    )
+                            ),
+                            responses = {
+                                    @ApiResponse(
+                                            responseCode = "200",
+                                            description = "Solicitud exitosa",
+                                            content = @Content(
+                                                    mediaType = "application/json",
+                                                    schema = @Schema(implementation = SolicitudDTO.class),
+                                                    examples = @ExampleObject(
+                                                            name = "Ejemplo de respuesta",
+                                                            summary = "Solicitud válida",
+                                                            value = """
+                                                            {
+                                                              "id": 1,
+                                                              "identificacion": "1007779304",
+                                                              "monto": 5000000,
+                                                              "plazo": 12,
+                                                              "tipo": 1,
+                                                              "estado": 1
+                                                            }
+                                                            """
+                                                    )
+                                            )
+                                    ),
+                                    @ApiResponse(
+                                            responseCode = "400",
+                                            description = "Solicitud no valida",
+                                            content = @Content(
+                                                    mediaType = "application/json",
+                                                    schema = @Schema(implementation = ErrorResponse.class),
+                                                    examples = @ExampleObject(
+                                                            name = "Ejemplo de respuesta",
+                                                            value = """
+                                                            {
+                                                              "errorCode": 400,
+                                                              "message": "El estado es obligatorio"
+                                                            }
+                                                            """
+                                                    )
+                                            )
+                                    ),
+                                    @ApiResponse(responseCode = "401", description = "No autorizado"),
+                                    @ApiResponse(responseCode = "403", description = "Access Denied"),
+                                    @ApiResponse(
+                                            responseCode = "409",
+                                            description = "Ha ocurrido un conflicto",
+                                            content = @Content(
+                                                    mediaType = "application/json",
+                                                    schema = @Schema(implementation = ErrorResponse.class),
+                                                    examples = @ExampleObject(
+                                                            name = "Ejemplo de respuesta",
+                                                            value = """
+                                                            {
+                                                              "errorCode": 409,
+                                                              "message": "Solo se puede aprobar o rechazar solicitudes"
+                                                            }
+                                                            """
+                                                    )
+                                            )
+                                    )
+                            }
+                    )
             )
     })
     public RouterFunction<ServerResponse> routerFunction(Handler handler) {
@@ -424,6 +518,7 @@ public class RouterRest {
                 .PUT("api/v1/solicitud", handler::listenUpdateSolicitud)
                 .GET("api/v1/solicitud", handler::listenGetAllSolicitudes)
                 .GET("api/v1/solicitud/{idEstados}", handler::listenGetSolicitudesByEstados)
+                .PUT("api/v1/solicitud/aprobar", handler::listenAprobarSolicitud)
                 .build();
     }
 }

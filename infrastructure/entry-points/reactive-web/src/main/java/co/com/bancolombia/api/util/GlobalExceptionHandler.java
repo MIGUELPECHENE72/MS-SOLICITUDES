@@ -29,6 +29,7 @@ public class GlobalExceptionHandler implements WebExceptionHandler {
 
         log.error("Excepción capturada: {}", ex.getMessage(),ex);
         HttpStatus status;
+        String message = ex.getMessage();
 
         if(ex instanceof ResourceNotFoundException || ex instanceof NoSuchElementException){
             status = HttpStatus.NOT_FOUND;
@@ -40,9 +41,10 @@ public class GlobalExceptionHandler implements WebExceptionHandler {
             status = HttpStatus.UNAUTHORIZED;
         }else {
             status = HttpStatus.INTERNAL_SERVER_ERROR;
+            message = "Ha ocurrido un error interno";
         }
 
-        ErrorResponse errorResponse = new ErrorResponse(ex.getMessage(),status.getReasonPhrase());
+        ErrorResponse errorResponse = new ErrorResponse(message,status.getReasonPhrase());
 
         try{
             String body = mapper.writeValueAsString(errorResponse);

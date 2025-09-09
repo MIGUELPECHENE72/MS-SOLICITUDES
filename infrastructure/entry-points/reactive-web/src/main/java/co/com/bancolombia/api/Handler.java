@@ -138,6 +138,23 @@ public class Handler {
                 .doOnTerminate(() -> log.info("*****Finalizó el proceso de actualización de la solicitud."));
     }
 
+    public Mono<ServerResponse> listenAprobarSolicitud(ServerRequest serverRequest) {
+        return serverRequest.bodyToMono(EditSolicitudDTO.class)
+                .doOnSubscribe(subscription -> log.info("******Inicia llamado a aprobar solicitud"))
+                .flatMap(editSolicitudDTO ->
+                        requestValidator.validadorSolicitud(editSolicitudDTO)
+                                .flatMap(validatedDTO -> solicitudUseCase.aprobarManual(
+                                                solicitudDTOMapper.toModel(validatedDTO))
+                                        .transform(transactionalOperator::transactional)
+                                )
+                                .flatMap(saved -> ServerResponse.ok()
+                                        .contentType(APPLICATION_JSON)
+                                        .bodyValue(solicitudDTOMapper.toResponse(saved))
+                                )
+                )
+                .doOnTerminate(() -> log.info("*****Finalizó el proceso de aprobar la solicitud."));
+    }
+
     private String getToken(ServerRequest serverRequest){
         return serverRequest.headers().header("Authorization").stream()
                 .filter(authHeader -> authHeader.startsWith("Bearer "))
