@@ -20,6 +20,7 @@ services:
       - ADAPTERS_R2DBC_PASSWORD=postgres
       - ADAPTERS_TRANSACTION_REACTIVE_ENABLED=true
       - JWT_TK_KEY=jWdLDCLzz51gKYlojoRF5dE0S1KgNP1rqj4Zaau6Rwg=
+      - JWT_TK_EXPIRATION=3600000
     networks:
       - crediya-network
 
