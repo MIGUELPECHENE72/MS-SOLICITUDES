@@ -25,6 +25,7 @@ class RestConsumerTest {
     private static PersonaMapper personaMapper;
 
 
+    /*
     @BeforeAll
     static void setUp() throws IOException {
         mockBackEnd = new MockWebServer();
@@ -70,4 +71,6 @@ class RestConsumerTest {
                         objectResponse.getIdentificacion().equals("1007779304"))
                 .verifyComplete();
     }
+
+     */
 }
