@@ -7,6 +7,9 @@ import co.com.bancolombia.api.mapper.SolicitudDTOMapper;
 import co.com.bancolombia.api.security.JwtTokenProvider;
 import co.com.bancolombia.api.util.RequestValidator;
 import co.com.bancolombia.api.util.exception.ResourceNotFoundException;
+import co.com.bancolombia.model.notificacion.Notificacion;
+import co.com.bancolombia.model.solicitud.Solicitud;
+import co.com.bancolombia.usecase.notificacion.NotificacionUseCase;
 import co.com.bancolombia.usecase.solicitud.SolicitudUseCase;
 import co.com.bancolombia.usecase.solicitudDTO.SolicitudDTOUseCase;
 import jakarta.validation.ValidationException;
@@ -32,6 +35,8 @@ public class Handler {
     private final SolicitudUseCase solicitudUseCase;
 
     private final SolicitudDTOUseCase solicitudDTOUseCase;
+
+    private final NotificacionUseCase notificacionUseCase;
 
     private final SolicitudDTOMapper solicitudDTOMapper;
 
@@ -143,16 +148,44 @@ public class Handler {
                 .doOnSubscribe(subscription -> log.info("******Inicia llamado a aprobar solicitud"))
                 .flatMap(editSolicitudDTO ->
                         requestValidator.validadorSolicitud(editSolicitudDTO)
-                                .flatMap(validatedDTO -> solicitudUseCase.aprobarManual(
-                                                solicitudDTOMapper.toModel(validatedDTO))
-                                        .transform(transactionalOperator::transactional)
+                                .flatMap(validatedDTO -> {
+
+                                    Mono<Solicitud> saved = solicitudUseCase.aprobarManual(
+                                                            solicitudDTOMapper.toModel(validatedDTO))
+                                            .transform(transactionalOperator::transactional);
+
+                                    return solicitudDTOUseCase.getBySolicitud(saved,getToken(serverRequest))
+                                            .flatMap(completo ->
+                                                sendNotification(
+                                                        "Novedad en el estado de su solicitud de credito",
+                                                        completo.getPersona().getCorreoElectronico(),
+                                                        "El estado de su solicitud de credito ahora es: " +
+                                                                completo.getEstado().getNombre()
+                                                        ).then(saved)
+                                            );
+                                    }
                                 )
-                                .flatMap(saved -> ServerResponse.ok()
+                                .flatMap(result -> ServerResponse.ok()
                                         .contentType(APPLICATION_JSON)
-                                        .bodyValue(solicitudDTOMapper.toResponse(saved))
+                                        .bodyValue(solicitudDTOMapper.toResponse(result))
                                 )
                 )
                 .doOnTerminate(() -> log.info("*****Finalizó el proceso de aprobar la solicitud."));
+    }
+
+    private Mono<String> sendNotification(String subject, String to, String body) {
+        String mensaje = String.format("""
+            {
+                "subject": "%s",
+                "to": "%s",
+                "bodyEmail": "%s"
+            }
+            """, subject, to, body);
+        return notificacionUseCase.send(new Notificacion(mensaje, "SENDING"))
+                .doOnSuccess(messageId ->
+                        log.info("Respuesta sqs: {}", messageId))
+                .doOnError(error ->
+                        log.error("Error al enviar mensaje a SQS: {}", error.getMessage(), error));
     }
 
     private String getToken(ServerRequest serverRequest){

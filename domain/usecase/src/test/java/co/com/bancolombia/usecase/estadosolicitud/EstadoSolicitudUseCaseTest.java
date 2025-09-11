@@ -2,9 +2,6 @@ package co.com.bancolombia.usecase.estadosolicitud;
 
 import co.com.bancolombia.model.estadosolicitud.EstadoSolicitud;
 import co.com.bancolombia.model.estadosolicitud.gateways.EstadoSolicitudRepository;
-import co.com.bancolombia.model.tiposolicitud.TipoSolicitud;
-import co.com.bancolombia.model.tiposolicitud.gateways.TipoSolicitudRepository;
-import co.com.bancolombia.usecase.tiposolicitud.TipoSolicitudUseCase;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -19,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class EstadoSolicitudUseCaseTest {
+class EstadoSolicitudUseCaseTest {
 
     @InjectMocks
     EstadoSolicitudUseCase estadoSolicitudUseCase;

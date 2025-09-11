@@ -2,7 +2,6 @@ package co.com.bancolombia.usecase.persona;
 
 import co.com.bancolombia.model.persona.Persona;
 import co.com.bancolombia.model.persona.gateways.PersonaServicePort;
-import co.com.bancolombia.model.tiposolicitud.TipoSolicitud;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -19,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class PersonaUseCaseTest {
+class PersonaUseCaseTest {
 
     @InjectMocks
     PersonaUseCase personaUseCase;
