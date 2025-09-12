@@ -25,6 +25,11 @@ public class SolicitudUseCase {
         return solicitudRepository.save(solicitud);
     }
 
+    public Mono<Solicitud> aprobarManual(Solicitud solicitud){
+        return (solicitud.getEstado().equals(4) || solicitud.getEstado().equals(2))? update(solicitud) :
+                Mono.error(new IllegalArgumentException("Solo se puede aprobar o rechazar solicitudes"));
+    }
+
     public Flux<Solicitud> getAll(){
         return solicitudRepository.findAll();
     }

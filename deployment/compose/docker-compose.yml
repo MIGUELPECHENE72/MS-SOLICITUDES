@@ -1,0 +1,72 @@
+services:
+
+  db:
+    container_name: postgres
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - crediya-network
+
+  autenticacion:
+    build:
+      context: ../componente/autenticacion
+      dockerfile: Dockerfile
+    container_name: bk-crediya-autenticacion
+    image: crediya/bk-crediya-autenticacion:0.0.1
+    ports:
+      - "8080:8080"
+    environment:
+      CORS_ALLOWED-ORIGINS: http://localhost:4200,http://localhost:8080,http://localhost:8081
+      ADAPTERS_R2DBC_HOST: db
+      ADAPTERS_R2DBC_PORT: 5432
+      ADAPTERS_R2DBC_DATABASE: postgres
+      ADAPTERS_R2DBC_SCHEMA: crediya
+      ADAPTERS_R2DBC_USERNAME: postgres
+      ADAPTERS_R2DBC_PASSWORD: postgres
+      ADAPTERS_TRANSACTION_REACTIVE_ENABLED: true
+      JWT_TK_KEY: jWdLDCLzz51gKYlojoRF5dE0S1KgNP1rqj4Zaau6Rwg=
+      JWT_TK_EXPIRATION: 3600000
+    networks:
+      - crediya-network
+
+  solicitudes:
+    build:
+      context: ../componente/solicitudes
+      dockerfile: Dockerfile
+    container_name: bk-crediya-solicitudes
+    image: crediya/bk-crediya-solicitudes:0.0.1
+    ports:
+      - "8081:8081"
+    environment:
+      CORS_ALLOWED-ORIGINS: http://localhost:4200,http://localhost:8080
+      ADAPTERS_R2DBC_HOST: db
+      ADAPTERS_R2DBC_PORT: 5432
+      ADAPTERS_R2DBC_DATABASE: postgres
+      ADAPTERS_R2DBC_SCHEMA: crediya
+      ADAPTERS_R2DBC_USERNAME: postgres
+      ADAPTERS_R2DBC_PASSWORD: postgres
+      ADAPTERS_TRANSACTION_REACTIVE_ENABLED: true
+      ADAPTER_RESTCONSUMER_TIMEOUT: 5000
+      ADAPTER_RESTCONSUMER_URL: http://autenticacion:8080
+      JWT_TK_KEY: jWdLDCLzz51gKYlojoRF5dE0S1KgNP1rqj4Zaau6Rwg=
+    networks:
+      - crediya-network
+
+networks:
+  crediya-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: /var/lib/docker/volumes/postgres_data/_data
+      o: bind

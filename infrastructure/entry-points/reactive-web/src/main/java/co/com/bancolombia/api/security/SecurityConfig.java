@@ -33,6 +33,8 @@ public class SecurityConfig {
                         .hasAnyRole("CLIENTE")
                         .pathMatchers(HttpMethod.GET, "api/v1/solicitud/{idEstados}")
                         .hasAnyRole("ASESOR")
+                        .pathMatchers(HttpMethod.PUT, "api/v1/solicitud/aprobar")
+                        .hasAnyRole("ASESOR")
                         .pathMatchers(
                                 "/swagger-ui.html",
                                 "/swagger-ui/**",
