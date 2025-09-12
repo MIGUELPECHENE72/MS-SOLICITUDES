@@ -32,4 +32,8 @@ public class SolicitudEntity {
     @Column("id_estado_solicitud")
     private Integer estado;
 
+    private BigDecimal tasaInteresMensual;
+
+    private BigDecimal cuotaMensual;
+
 }

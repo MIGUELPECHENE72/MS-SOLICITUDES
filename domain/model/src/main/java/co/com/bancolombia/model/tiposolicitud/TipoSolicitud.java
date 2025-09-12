@@ -15,4 +15,6 @@ public class TipoSolicitud {
 
     private String estado;
 
+    private String validacionAutomatica;
+
 }

@@ -35,4 +35,10 @@ public class CreateSolicitudDTO {
 
     private Integer estado = 1;
 
+    @NotNull(message = "La tasa de interes mensual es obligatoria")
+    @DecimalMin(value = "0.0", inclusive = false, message = "La tasa de interes mensual debe ser mayor a 0")
+    private BigDecimal tasaInteresMensual;
+
+    private BigDecimal cuotaMensual;
+
 }

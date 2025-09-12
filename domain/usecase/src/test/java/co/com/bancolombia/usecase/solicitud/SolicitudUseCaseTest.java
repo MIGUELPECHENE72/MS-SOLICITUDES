@@ -37,11 +37,12 @@ class SolicitudUseCaseTest {
     private static final BigDecimal VALOR = BigDecimal.valueOf(1000000);
 
     private Solicitud createTestSolicitud(Long id) {
-        return new Solicitud(id, IDENTIFICACION, VALOR, 12, 1, 1);
+        return new Solicitud(id, IDENTIFICACION, VALOR, 12, 1, 1,
+                new BigDecimal("0.0214"), new BigDecimal("100000"));
     }
 
     private TipoSolicitud createTipoSolicitud(Integer id){
-        return new TipoSolicitud(1,"Credito Libre Consumo","S");
+        return new TipoSolicitud(1,"Credito Libre Consumo","S","S");
     }
 
     @Test

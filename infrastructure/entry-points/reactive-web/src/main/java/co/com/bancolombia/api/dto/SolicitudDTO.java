@@ -7,5 +7,7 @@ public record SolicitudDTO(Long id,
                             BigDecimal monto,
                             Integer plazo,
                             Integer tipo,
-                            Integer estado) {
+                            Integer estado,
+                            BigDecimal tasaInteresMensual,
+                            BigDecimal cuotaMensual) {
 }
