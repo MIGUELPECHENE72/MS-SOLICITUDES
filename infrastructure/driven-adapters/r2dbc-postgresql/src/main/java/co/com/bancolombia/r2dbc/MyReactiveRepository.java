@@ -19,7 +19,7 @@ public interface MyReactiveRepository extends ReactiveCrudRepository<SolicitudEn
     Flux<Solicitud> findByEstadoIn(List<Integer> idEstados, Pageable pageable);
 
     @Query("""
-            SELECT SUM(cuota_mensual) FROM solicitud_entity 
+            SELECT SUM(cuota_mensual) FROM crediya.solicitud 
             WHERE identificacion = :identificacion AND id_estado_solicitud = :estado
             """)
     Mono<BigDecimal> sumCuotaMensualByIdentificacionAndEstado(String identificacion, Integer estado);

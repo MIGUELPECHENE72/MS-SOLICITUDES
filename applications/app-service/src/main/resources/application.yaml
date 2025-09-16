@@ -52,7 +52,7 @@ adapter:
   sqs:
     region: "us-east-1"
     queueUrlEmail: "https://sqs.us-east-1.amazonaws.com/683134746792/notifyEmail"
-    queueUrlCalcularCapacidad: "https://sqs.us-east-1.amazonaws.com/683134746792/notifyEmail"
+    queueUrlCalcularCapacidad: "https://sqs.us-east-1.amazonaws.com/683134746792/listenCapacidadEndeudamiento"
 resilience4j:
   circuitbreaker:
     instances:
@@ -77,7 +77,7 @@ resilience4j:
 entrypoint:
   sqs:
     region: "us-east-1"
-    queueUrl: "http://localhost:4566/000000000000/sample"
+    queueUrl: "https://sqs.us-east-1.amazonaws.com/683134746792/listenCambioEstado"
     waitTimeSeconds: 20
     maxNumberOfMessages: 10
     visibilityTimeoutSeconds: 10

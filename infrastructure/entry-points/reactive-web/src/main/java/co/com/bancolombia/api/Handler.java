@@ -160,8 +160,8 @@ public class Handler {
                                                 sendNotification(
                                                         "Novedad en el estado de su solicitud de credito",
                                                         completo.getPersona().getCorreoElectronico(),
-                                                        "El estado de su solicitud de credito ahora es: " +
-                                                                completo.getEstado().getNombre()
+                                                        "<p>El estado de su solicitud de credito ahora es: " +
+                                                                completo.getEstado().getNombre() + "</p>"
                                                         ).then(saved)
                                             );
                                     }

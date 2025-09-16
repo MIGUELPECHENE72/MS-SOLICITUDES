@@ -46,19 +46,22 @@ public class SolicitudUseCase {
                 Mono.error(new IllegalArgumentException("Solo se puede aprobar o rechazar solicitudes"));
     }
 
-    public Mono<Solicitud> aprobarAutomatico(Long id, Map<String, Integer> updates){
-        if(updates.containsKey("estado")){
+    public Mono<Solicitud> aprobarAutomatico(Long id, Map<String, Integer> updates) {
+        if (updates.containsKey("estado")) {
             Integer estado = updates.get("estado");
-            return (estado.equals(Estado.REVISION_MANUAL.valor) ||
+            if (estado.equals(Estado.REVISION_MANUAL.valor) ||
                     estado.equals(Estado.APROVADA.valor) ||
-                    estado.equals(Estado.RECHAZADA.valor))?
-                    getById(id).flatMap(solicitud -> {
-                        solicitud.setEstado(estado);
-                        return update(solicitud);
-                    }) :
-                    Mono.error(new IllegalArgumentException("Solo son validos los estados: " +
-                            "Revision manual, Aprobada y Rechazada"));
-        }return Mono.error(new NoSuchElementException("La solicitud no contiene el estado"));
+                    estado.equals(Estado.RECHAZADA.valor)) {
+
+                return getById(id).flatMap(solicitud -> {
+                    solicitud.setEstado(estado);
+                    return update(solicitud);
+                });
+            } else {
+                return Mono.error(new IllegalArgumentException("Solo son validos los estados: " +
+                        "Revision manual, Aprobada y Rechazada"));
+            }
+        } else {return Mono.error(new NoSuchElementException("La solicitud no contiene el estado"));}
     }
 
     public Flux<Solicitud> getAll(){
@@ -74,30 +77,35 @@ public class SolicitudUseCase {
     }
 
     public Mono<Solicitud> calcularCuotaMensual(Solicitud solicitud) {
+        try{
+            BigDecimal pasoUno = BigDecimal.ONE.add(solicitud.getTasaInteresMensual()); // 1 + i
+            BigDecimal pasoDos = pasoUno.pow(solicitud.getPlazo(), MathContext.DECIMAL128);  // (1 + i)^n
+            BigDecimal pasoTres = solicitud.getTasaInteresMensual().multiply(pasoDos, MathContext.DECIMAL128); // i * (1 + i)^n
+            BigDecimal pasoCuatro = solicitud.getMonto().multiply(pasoTres, MathContext.DECIMAL128); //P * (i * (1 + i)^n)
+            BigDecimal pasoCinco = pasoDos.subtract(BigDecimal.ONE); //(1 + i)^n - 1
 
-        BigDecimal pasoUno = BigDecimal.ONE.add(solicitud.getTasaInteresMensual()); // 1 + i
-        BigDecimal pasoDos = pasoUno.pow(solicitud.getPlazo(), MathContext.DECIMAL128);  // (1 + i)^n
-        BigDecimal pasoTres = solicitud.getTasaInteresMensual().multiply(pasoDos, MathContext.DECIMAL128); // i * (1 + i)^n
-        BigDecimal pasoCuatro = solicitud.getMonto().multiply(pasoTres, MathContext.DECIMAL128); //P * (i * (1 + i)^n)
-        BigDecimal pasoCinco = pasoDos.subtract(BigDecimal.ONE); //(1 + i)^n - 1
-
-        // [P * (i * (1 + i)^n)] / [(1 + i)^n - 1]
-        BigDecimal cuotaMensual = pasoCuatro.divide(pasoCinco, MathContext.DECIMAL128);
-        solicitud.setCuotaMensual(cuotaMensual.setScale(2, RoundingMode.HALF_UP));
-
-        return Mono.just(solicitud);
+            // [P * (i * (1 + i)^n)] / [(1 + i)^n - 1]
+            BigDecimal cuotaMensual = pasoCuatro.divide(pasoCinco, MathContext.DECIMAL128);
+            solicitud.setCuotaMensual(cuotaMensual.setScale(2, RoundingMode.HALF_UP));
+            return Mono.just(solicitud);
+        }catch (Exception e){
+            System.out.println(e.getMessage());
+            return Mono.error(new IllegalArgumentException("Error calculando cuota mensual "+ e.getMessage()));
+        }
     }
 
     public Mono<Solicitud> envioAprobarAutomatico(Solicitud solicitud, TipoSolicitud tipoSolicitud, String token) {
         if (tipoSolicitud.getValidacionAutomatica().equals("S")) {
 
             Mono<BigDecimal> deudaMensualActualMono =
-                    solicitudRepository.sumCuotaMensualByIdentificacionAndEstado(solicitud.getIdentificacion(), 4);
+                    solicitudRepository.sumCuotaMensualByIdentificacionAndEstado(solicitud.getIdentificacion(), 4)
+                            .defaultIfEmpty(BigDecimal.ZERO);
 
             Mono<Persona> personaMono =
                     personaUseCase.obtenerUsuarioPorIdentificacion(solicitud.getIdentificacion(), token);
 
-            return deudaMensualActualMono.zipWhen(deudaMensualActual -> personaMono)
+            return deudaMensualActualMono
+                    .zipWhen(deudaMensualActual -> personaMono)
                     .flatMap(tuple -> {
                         BigDecimal deudaMensualActual = tuple.getT1();
                         Persona persona = tuple.getT2();
@@ -112,14 +120,16 @@ public class SolicitudUseCase {
                                 solicitud.getMonto(),
                                 solicitud.getTasaInteresMensual());
 
-                        // Aquí puedes hacer lo que necesites con el JSON (como enviarlo a un servicio)
-                        notificacionUseCase.sendCalcularCapacidad(new Notificacion(json,"SENDING"))
+                        
+                        return notificacionUseCase.sendCalcularCapacidad(new Notificacion(json, "SENDING"))
                                 .doOnSuccess(messageId ->
                                         System.out.println("Respuesta sqs: " + messageId))
                                 .doOnError(error ->
-                                        System.out.print("Error al enviar mensaje a SQS: " + error.getMessage()))
-                                .subscribe();
-
+                                        System.out.println("Error al enviar mensaje a SQS: " + error.getMessage()))
+                                .then(Mono.just(solicitud));
+                    })
+                    .onErrorResume(e -> {
+                        System.out.println("Error al procesar la aprobación automática: " + e.getMessage());
                         return Mono.just(solicitud);
                     });
         }
@@ -138,15 +148,15 @@ public class SolicitudUseCase {
                                            BigDecimal tasaInteresMensualSolicitud){
         return String.format("""
                 {
-                    "deudaMensualActual": "%s",
+                    "deudaMensualActual": %s,
                     "nombre": "%s",
                     "email": "%s",
-                    "ingresosTotales": "%s",
-                    "cuotaSolicitud": "%s",
-                    "idSolicitud": "%s",
-                    "plazoSolicitud": "%s",
-                    "montoSolicitud": "%s",
-                    "tasaInteresMensualSolicitud": "%s",
+                    "ingresosTotales": %s,
+                    "cuotaSolicitud": %s,
+                    "idSolicitud": %s,
+                    "plazoSolicitud": %s,
+                    "montoSolicitud": %s,
+                    "tasaInteresMensualSolicitud": %s
                 }
                 """,deudaMensualActual,nombre,email,ingresosTotales,cuotaSolicitud,idSolicitud,
                 plazoSolicitud,montoSolicitud,tasaInteresMensualSolicitud);
