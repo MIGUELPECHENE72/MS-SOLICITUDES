@@ -111,7 +111,8 @@ public class Handler {
                                 .flatMap(validatedDTO -> {
                                     if (validatedDTO.getIdentificacion()
                                             .equals(jwtTokenProvider.getUsernameFromToken(getToken(serverRequest)))) {
-                                        return solicitudUseCase.create(solicitudDTOMapper.toModel(validatedDTO))
+                                        return solicitudUseCase.create(
+                                                solicitudDTOMapper.toModel(validatedDTO),getToken(serverRequest))
                                                 .transform(transactionalOperator::transactional);
                                     } else {
                                         return Mono.error(

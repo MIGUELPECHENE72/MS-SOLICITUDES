@@ -11,6 +11,9 @@ import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 
 import org.springframework.data.domain.Pageable;
+import reactor.core.publisher.Mono;
+
+import java.math.BigDecimal;
 import java.util.List;
 
 @Repository
@@ -33,5 +36,10 @@ public class MyReactiveRepositoryAdapter extends ReactiveAdapterOperations<
     public Flux<Solicitud> findByEstadoIn(List<Integer> idEstados, Integer page, Integer size) {
         Pageable pageable = PageRequest.of(page,size, Sort.by(Sort.Order.asc("id")));
         return repository.findByEstadoIn(idEstados, pageable);
+    }
+
+    @Override
+    public Mono<BigDecimal> sumCuotaMensualByIdentificacionAndEstado(String identificacion, Integer estado) {
+        return repository.sumCuotaMensualByIdentificacionAndEstado(identificacion, estado);
     }
 }

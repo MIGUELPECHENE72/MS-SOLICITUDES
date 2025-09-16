@@ -14,4 +14,8 @@ public class NotificacionUseCase {
         return notificacionPublisher.send(notificacion);
     }
 
+    public Mono<String> sendCalcularCapacidad(Notificacion notificacion){
+        return notificacionPublisher.sendCalcularCapacidad(notificacion);
+    }
+
 }
