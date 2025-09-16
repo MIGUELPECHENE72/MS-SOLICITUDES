@@ -1,8 +1,11 @@
 package co.com.bancolombia.usecase.solicitud;
 
+import co.com.bancolombia.model.notificacion.Notificacion;
+import co.com.bancolombia.model.persona.Persona;
 import co.com.bancolombia.model.solicitud.Solicitud;
 import co.com.bancolombia.model.solicitud.gateways.SolicitudRepository;
 import co.com.bancolombia.model.tiposolicitud.TipoSolicitud;
+import co.com.bancolombia.usecase.notificacion.NotificacionUseCase;
 import co.com.bancolombia.usecase.persona.PersonaUseCase;
 import co.com.bancolombia.usecase.tiposolicitud.TipoSolicitudUseCase;
 import org.junit.jupiter.api.Test;
@@ -15,6 +18,7 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,9 +43,24 @@ class SolicitudUseCaseTest {
     @Mock
     PersonaUseCase personaUseCase;
 
+    @Mock
+    NotificacionUseCase notificacionUseCase;
+
     private static final Long TEST_ID = 1L;
     private static final String IDENTIFICACION = "1007779304";
     private static final BigDecimal VALOR = BigDecimal.valueOf(1000000);
+    private static final Persona persona =
+            new Persona(1,
+                    "MIGUEL ANGEL",
+                    "PECHENE PECHENE",
+                    LocalDate.now(),
+                    "PT MADERO",
+                    "3233820787",
+                    "miguelpechene72@gmail.com",
+                    new BigDecimal("3000000"),
+                    1,
+                    IDENTIFICACION,
+                    3);
 
     private Solicitud createTestSolicitud(Long id) {
         return new Solicitud(id, IDENTIFICACION, VALOR, 12, 1, 1,
@@ -294,6 +313,68 @@ class SolicitudUseCaseTest {
                 .assertNext(saved -> {
                     assertNotNull(saved);
                     assertEquals(4, saved.getEstado());
+                })
+                .verifyComplete();
+
+    }
+
+    @Test
+    void mustAprobarAutomaticoSESJSON() {
+
+        String esperado = """
+                {
+                    "deudaMensualActual": 100000,
+                    "nombre": "MIGUEL",
+                    "email": "miguelpechene72@gmail.com",
+                    "ingresosTotales": 2000000,
+                    "cuotaSolicitud": 10000,
+                    "idSolicitud": 20,
+                    "plazoSolicitud": 10,
+                    "montoSolicitud": 100000,
+                    "tasaInteresMensualSolicitud": 0.0214
+                }
+                """;
+
+        String result = solicitudUseCase.aprobarAutomaticoSESJSON(
+                new BigDecimal("100000"),
+                "MIGUEL",
+                "miguelpechene72@gmail.com",
+                new BigDecimal("2000000"),
+                new BigDecimal("10000"),
+                20L,
+                10,
+                new BigDecimal("100000"),
+                new BigDecimal("0.0214")
+        );
+
+        assertNotNull(result);
+        assertEquals(esperado, result);
+
+    }
+
+    @Test
+    void mustEnvioAprobarAutomatico() {
+
+        Solicitud solicitud = createTestSolicitud(TEST_ID);
+        TipoSolicitud tipoSolicitud = createTipoSolicitud(1,"S");
+        String token = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMDA3Nzc5MzA2Iiwicm9sZXMiOlsiUk9MRV9DTElFTlRFIl0sImlhdCI" +
+                "6MTc1ODA2MzY2MywiZXhwIjoxNzU4MDY3MjYzfQ.DKz_zx8hOjADzaSFZdvcdVhJVBSNZO_C_ps1PwvAf_A";
+        BigDecimal totalDeudaActual = new BigDecimal("257000");
+        Notificacion notificacion = new Notificacion("Hola Mundo","SENDING");
+
+        when(solicitudRepository.sumCuotaMensualByIdentificacionAndEstado(IDENTIFICACION,4))
+                .thenReturn(Mono.just(totalDeudaActual));
+        when(personaUseCase.obtenerUsuarioPorIdentificacion(IDENTIFICACION,token))
+                .thenReturn(Mono.just(persona));
+        when(notificacionUseCase.sendCalcularCapacidad(notificacion))
+                .thenReturn(Mono.just("1wnsu1nwjkndknqiw"));
+
+        Mono<Solicitud> result = solicitudUseCase.envioAprobarAutomatico(solicitud,tipoSolicitud,token);
+
+        StepVerifier.create(result)
+                .assertNext(saved -> {
+                    assertNotNull(saved);
+                    assertEquals(1, saved.getEstado());
                 })
                 .verifyComplete();
 

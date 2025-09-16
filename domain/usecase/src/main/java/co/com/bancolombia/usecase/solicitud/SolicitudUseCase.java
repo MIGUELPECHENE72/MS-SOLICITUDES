@@ -77,21 +77,16 @@ public class SolicitudUseCase {
     }
 
     public Mono<Solicitud> calcularCuotaMensual(Solicitud solicitud) {
-        try{
-            BigDecimal pasoUno = BigDecimal.ONE.add(solicitud.getTasaInteresMensual()); // 1 + i
-            BigDecimal pasoDos = pasoUno.pow(solicitud.getPlazo(), MathContext.DECIMAL128);  // (1 + i)^n
-            BigDecimal pasoTres = solicitud.getTasaInteresMensual().multiply(pasoDos, MathContext.DECIMAL128); // i * (1 + i)^n
-            BigDecimal pasoCuatro = solicitud.getMonto().multiply(pasoTres, MathContext.DECIMAL128); //P * (i * (1 + i)^n)
-            BigDecimal pasoCinco = pasoDos.subtract(BigDecimal.ONE); //(1 + i)^n - 1
+        BigDecimal pasoUno = BigDecimal.ONE.add(solicitud.getTasaInteresMensual()); // 1 + i
+        BigDecimal pasoDos = pasoUno.pow(solicitud.getPlazo(), MathContext.DECIMAL128);  // (1 + i)^n
+        BigDecimal pasoTres = solicitud.getTasaInteresMensual().multiply(pasoDos, MathContext.DECIMAL128); // i * (1 + i)^n
+        BigDecimal pasoCuatro = solicitud.getMonto().multiply(pasoTres, MathContext.DECIMAL128); //P * (i * (1 + i)^n)
+        BigDecimal pasoCinco = pasoDos.subtract(BigDecimal.ONE); //(1 + i)^n - 1
 
-            // [P * (i * (1 + i)^n)] / [(1 + i)^n - 1]
-            BigDecimal cuotaMensual = pasoCuatro.divide(pasoCinco, MathContext.DECIMAL128);
-            solicitud.setCuotaMensual(cuotaMensual.setScale(2, RoundingMode.HALF_UP));
-            return Mono.just(solicitud);
-        }catch (Exception e){
-            System.out.println(e.getMessage());
-            return Mono.error(new IllegalArgumentException("Error calculando cuota mensual "+ e.getMessage()));
-        }
+        // [P * (i * (1 + i)^n)] / [(1 + i)^n - 1]
+        BigDecimal cuotaMensual = pasoCuatro.divide(pasoCinco, MathContext.DECIMAL128);
+        solicitud.setCuotaMensual(cuotaMensual.setScale(2, RoundingMode.HALF_UP));
+        return Mono.just(solicitud);
     }
 
     public Mono<Solicitud> envioAprobarAutomatico(Solicitud solicitud, TipoSolicitud tipoSolicitud, String token) {
@@ -120,7 +115,7 @@ public class SolicitudUseCase {
                                 solicitud.getMonto(),
                                 solicitud.getTasaInteresMensual());
 
-                        
+
                         return notificacionUseCase.sendCalcularCapacidad(new Notificacion(json, "SENDING"))
                                 .doOnSuccess(messageId ->
                                         System.out.println("Respuesta sqs: " + messageId))
