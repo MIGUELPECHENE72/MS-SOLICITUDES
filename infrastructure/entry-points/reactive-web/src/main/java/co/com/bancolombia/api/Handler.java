@@ -111,7 +111,8 @@ public class Handler {
                                 .flatMap(validatedDTO -> {
                                     if (validatedDTO.getIdentificacion()
                                             .equals(jwtTokenProvider.getUsernameFromToken(getToken(serverRequest)))) {
-                                        return solicitudUseCase.create(solicitudDTOMapper.toModel(validatedDTO))
+                                        return solicitudUseCase.create(
+                                                solicitudDTOMapper.toModel(validatedDTO),getToken(serverRequest))
                                                 .transform(transactionalOperator::transactional);
                                     } else {
                                         return Mono.error(
@@ -159,8 +160,8 @@ public class Handler {
                                                 sendNotification(
                                                         "Novedad en el estado de su solicitud de credito",
                                                         completo.getPersona().getCorreoElectronico(),
-                                                        "El estado de su solicitud de credito ahora es: " +
-                                                                completo.getEstado().getNombre()
+                                                        "<p>El estado de su solicitud de credito ahora es: " +
+                                                                completo.getEstado().getNombre() + "</p>"
                                                         ).then(saved)
                                             );
                                     }

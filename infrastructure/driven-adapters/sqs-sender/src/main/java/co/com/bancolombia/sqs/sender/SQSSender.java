@@ -19,15 +19,15 @@ public class SQSSender implements NotificacionPublisher {
     private final SqsAsyncClient client;
 
     public Mono<String> send(String message) {
-        return Mono.fromCallable(() -> buildRequest(message))
+        return Mono.fromCallable(() -> buildRequestEmail(message))
                 .flatMap(request -> Mono.fromFuture(client.sendMessage(request)))
                 .doOnNext(response -> log.debug("Message sent {}", response.messageId()))
                 .map(SendMessageResponse::messageId);
     }
 
-    private SendMessageRequest buildRequest(String message) {
+    private SendMessageRequest buildRequestEmail(String message) {
         return SendMessageRequest.builder()
-                .queueUrl(properties.queueUrl())
+                .queueUrl(properties.queueUrlEmail())
                 .messageBody(message)
                 .build();
     }
@@ -35,7 +35,23 @@ public class SQSSender implements NotificacionPublisher {
     @Override
     public Mono<String> send(Notificacion notificacion) {
         log.info("Se obtiene el mensaje: {}",notificacion.getMensaje());
-        return Mono.fromCallable(() -> buildRequest(notificacion.getMensaje()))
+        return Mono.fromCallable(() -> buildRequestEmail(notificacion.getMensaje()))
+                .flatMap(request -> Mono.fromFuture(client.sendMessage(request)))
+                .doOnNext(response -> log.debug("Message sent {}", response.messageId()))
+                .map(SendMessageResponse::messageId);
+    }
+
+    private SendMessageRequest buildRequestCalcularCapacidad(String message) {
+        return SendMessageRequest.builder()
+                .queueUrl(properties.queueUrlCalcularCapacidad())
+                .messageBody(message)
+                .build();
+    }
+
+    @Override
+    public Mono<String> sendCalcularCapacidad(Notificacion notificacion) {
+        log.info("Se obtiene el mensaje: {}",notificacion.getMensaje());
+        return Mono.fromCallable(() -> buildRequestCalcularCapacidad(notificacion.getMensaje()))
                 .flatMap(request -> Mono.fromFuture(client.sendMessage(request)))
                 .doOnNext(response -> log.debug("Message sent {}", response.messageId()))
                 .map(SendMessageResponse::messageId);

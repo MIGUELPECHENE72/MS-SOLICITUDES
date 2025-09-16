@@ -25,8 +25,10 @@ class TipoSolicitudUseCaseTest {
     TipoSolicitudRepository tipoSolicitudRepository;
 
     private static final Integer TEST_ID = 1;
-    private static final TipoSolicitud tipo1 = new TipoSolicitud(1,"Credito Libre Consumo","S");
-    private static final TipoSolicitud tipo2 = new TipoSolicitud(2,"Credito Vivienda","S");
+    private static final TipoSolicitud tipo1 =
+            new TipoSolicitud(1,"Credito Libre Consumo","S","S");
+    private static final TipoSolicitud tipo2 =
+            new TipoSolicitud(2,"Credito Vivienda","S","N");
 
     @Test
     void mustGetAll(){

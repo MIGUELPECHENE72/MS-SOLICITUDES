@@ -1,5 +1,6 @@
 package co.com.bancolombia.api.dto;
 
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -32,5 +33,12 @@ public class EditSolicitudDTO {
 
     @NotNull(message = "El estado es obligatorio")
     private Integer estado;
+
+    @NotNull(message = "La tasa de interes mensual es obligatoria")
+    @DecimalMin(value = "0.0", inclusive = false, message = "La tasa de interes mensual debe ser mayor a 0")
+    private BigDecimal tasaInteresMensual;
+
+    @NotNull(message = "La cuota mensual es obligatoria")
+    private BigDecimal cuotaMensual;
 
 }

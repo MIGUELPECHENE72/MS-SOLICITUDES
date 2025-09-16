@@ -7,4 +7,6 @@ public interface NotificacionPublisher {
 
     Mono<String> send(Notificacion notificacion);
 
+    Mono<String> sendCalcularCapacidad(Notificacion notificacion);
+
 }

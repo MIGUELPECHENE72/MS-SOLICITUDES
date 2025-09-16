@@ -23,4 +23,8 @@ public class Solicitud {
 
     private Integer estado;
 
+    private BigDecimal tasaInteresMensual;
+
+    private BigDecimal cuotaMensual;
+
 }

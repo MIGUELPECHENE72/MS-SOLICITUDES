@@ -43,7 +43,7 @@ class SolicitudDTOUseCaseTest {
     PersonaUseCase personaUseCase;
 
     private static final Long TEST_ID = 1L;
-    private static final TipoSolicitud tipo = new TipoSolicitud(1,"Credito Libre Consumo","S");
+    private static final TipoSolicitud tipo = new TipoSolicitud(1,"Credito Libre Consumo","S","S");
     private static final EstadoSolicitud estado = new EstadoSolicitud(1,"Pendiente de revisión","S");
     private static final Persona persona =
             new Persona(1,
@@ -62,7 +62,9 @@ class SolicitudDTOUseCaseTest {
             new BigDecimal(1500000),
             12,
             1,
-            1);
+            1,
+            new BigDecimal("0.0214"),
+            new BigDecimal("150000"));
 
     @Test
     void mustGetById(){

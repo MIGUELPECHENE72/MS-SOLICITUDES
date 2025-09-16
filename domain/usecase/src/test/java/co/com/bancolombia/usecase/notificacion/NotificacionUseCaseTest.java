@@ -28,13 +28,31 @@ class NotificacionUseCaseTest {
     }
 
     @Test
-    void mustGetById(){
+    void mustSend(){
 
         Notificacion notificacion = createNotificacion();
 
         when(notificacionPublisher.send(notificacion)).thenReturn(Mono.just("a2ba2f5b-3bd8-4d8f-b99f-4f8b3e19eb85"));
 
         Mono<String> result = notificacionUseCase.send(notificacion);
+
+        StepVerifier.create(result)
+                .assertNext(id -> {
+                    assertNotNull(id);
+                    assertEquals("a2ba2f5b-3bd8-4d8f-b99f-4f8b3e19eb85", id);
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void mustSendCalcularCapacidad(){
+
+        Notificacion notificacion = createNotificacion();
+
+        when(notificacionPublisher.sendCalcularCapacidad(notificacion))
+                .thenReturn(Mono.just("a2ba2f5b-3bd8-4d8f-b99f-4f8b3e19eb85"));
+
+        Mono<String> result = notificacionUseCase.sendCalcularCapacidad(notificacion);
 
         StepVerifier.create(result)
                 .assertNext(id -> {

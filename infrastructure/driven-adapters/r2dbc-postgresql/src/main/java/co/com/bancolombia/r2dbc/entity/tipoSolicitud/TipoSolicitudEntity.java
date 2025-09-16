@@ -21,4 +21,6 @@ public class TipoSolicitudEntity {
 
     private String estado;
 
+    private String validacionAutomatica;
+
 }
