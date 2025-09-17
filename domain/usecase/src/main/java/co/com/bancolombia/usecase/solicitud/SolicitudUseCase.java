@@ -38,7 +38,15 @@ public class SolicitudUseCase {
     }
 
     public Mono<Solicitud> update(Solicitud solicitud) {
-        return solicitudRepository.save(solicitud);
+        return solicitudRepository.save(solicitud)
+                .flatMap(saved -> {
+                    if(saved.getEstado().equals(Estado.APROVADA.valor)){
+                        return notificacionUseCase.sendNotifyAprobado(new Notificacion("1","SENDING"))
+                                .then(Mono.just(saved));
+                    }else{
+                        return Mono.just(saved);
+                    }
+                });
     }
 
     public Mono<Solicitud> aprobarManual(Solicitud solicitud){

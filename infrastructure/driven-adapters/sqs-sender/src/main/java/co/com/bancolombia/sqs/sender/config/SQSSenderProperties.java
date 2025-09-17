@@ -7,5 +7,6 @@ public record SQSSenderProperties(
      String region,
      String queueUrlEmail,
      String queueUrlCalcularCapacidad,
+     String queueUrlNotifyAprobado,
      String endpoint){
 }

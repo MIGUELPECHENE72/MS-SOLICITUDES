@@ -53,6 +53,7 @@ adapter:
     region: "us-east-1"
     queueUrlEmail: "https://sqs.us-east-1.amazonaws.com/683134746792/notifyEmail"
     queueUrlCalcularCapacidad: "https://sqs.us-east-1.amazonaws.com/683134746792/listenCapacidadEndeudamiento"
+    queueUrlNotifyAprobado: "https://sqs.us-east-1.amazonaws.com/683134746792/ListenReporteAprobados"
 resilience4j:
   circuitbreaker:
     instances:

@@ -149,22 +149,26 @@ public class Handler {
                 .doOnSubscribe(subscription -> log.info("******Inicia llamado a aprobar solicitud"))
                 .flatMap(editSolicitudDTO ->
                         requestValidator.validadorSolicitud(editSolicitudDTO)
-                                .flatMap(validatedDTO -> {
-
-                                    Mono<Solicitud> saved = solicitudUseCase.aprobarManual(
-                                                            solicitudDTOMapper.toModel(validatedDTO))
-                                            .transform(transactionalOperator::transactional);
-
-                                    return solicitudDTOUseCase.getBySolicitud(saved,getToken(serverRequest))
-                                            .flatMap(completo ->
-                                                sendNotification(
-                                                        "Novedad en el estado de su solicitud de credito",
-                                                        completo.getPersona().getCorreoElectronico(),
-                                                        "<p>El estado de su solicitud de credito ahora es: " +
-                                                                completo.getEstado().getNombre() + "</p>"
-                                                        ).then(saved)
-                                            );
-                                    }
+                                .flatMap(validatedDTO ->
+                                        solicitudUseCase.aprobarManual(
+                                                solicitudDTOMapper.toModel(validatedDTO))
+                                                .transform(transactionalOperator::transactional)
+                                                .flatMap(saved ->
+                                                        solicitudDTOUseCase.getBySolicitud(Mono.just(saved),
+                                                                getToken(serverRequest))
+                                                                .flatMap(completo ->
+                                                                        sendNotification(
+                                                                                "Novedad en el estado de su " +
+                                                                                        "solicitud de credito",
+                                                                                completo.getPersona()
+                                                                                        .getCorreoElectronico(),
+                                                                                "<p>El estado de su solicitud " +
+                                                                                        "de credito ahora es: " +
+                                                                                        completo.getEstado()
+                                                                                                .getNombre() + "</p>"
+                                                                        ).then(Mono.just(saved))
+                                                                )
+                                                )
                                 )
                                 .flatMap(result -> ServerResponse.ok()
                                         .contentType(APPLICATION_JSON)
@@ -172,6 +176,14 @@ public class Handler {
                                 )
                 )
                 .doOnTerminate(() -> log.info("*****Finalizó el proceso de aprobar la solicitud."));
+    }
+
+    private String getToken(ServerRequest serverRequest){
+        return serverRequest.headers().header("Authorization").stream()
+                .filter(authHeader -> authHeader.startsWith("Bearer "))
+                .findFirst()
+                .map(authHeader -> authHeader.substring(7))
+                .orElseThrow(() -> new IllegalArgumentException("Token JWT no encontrado"));
     }
 
     private Mono<String> sendNotification(String subject, String to, String body) {
@@ -187,14 +199,6 @@ public class Handler {
                         log.info("Respuesta sqs: {}", messageId))
                 .doOnError(error ->
                         log.error("Error al enviar mensaje a SQS: {}", error.getMessage(), error));
-    }
-
-    private String getToken(ServerRequest serverRequest){
-        return serverRequest.headers().header("Authorization").stream()
-                .filter(authHeader -> authHeader.startsWith("Bearer "))
-                .findFirst()
-                .map(authHeader -> authHeader.substring(7))
-                .orElseThrow(() -> new IllegalArgumentException("Token JWT no encontrado"));
     }
 
 }

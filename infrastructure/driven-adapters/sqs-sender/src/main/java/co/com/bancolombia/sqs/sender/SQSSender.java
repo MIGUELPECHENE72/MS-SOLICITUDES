@@ -56,4 +56,20 @@ public class SQSSender implements NotificacionPublisher {
                 .doOnNext(response -> log.debug("Message sent {}", response.messageId()))
                 .map(SendMessageResponse::messageId);
     }
+
+    private SendMessageRequest buildRequestNotifyAprobado(String message) {
+        return SendMessageRequest.builder()
+                .queueUrl(properties.queueUrlNotifyAprobado())
+                .messageBody(message)
+                .build();
+    }
+
+    @Override
+    public Mono<String> sendNotifyAprobado(Notificacion notificacion) {
+        log.info("Se obtiene el mensaje: {}",notificacion.getMensaje());
+        return Mono.fromCallable(() -> buildRequestNotifyAprobado(notificacion.getMensaje()))
+                .flatMap(request -> Mono.fromFuture(client.sendMessage(request)))
+                .doOnNext(response -> log.debug("Message sent {}", response.messageId()))
+                .map(SendMessageResponse::messageId);
+    }
 }
