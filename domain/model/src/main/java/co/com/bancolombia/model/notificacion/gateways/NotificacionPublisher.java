@@ -9,4 +9,6 @@ public interface NotificacionPublisher {
 
     Mono<String> sendCalcularCapacidad(Notificacion notificacion);
 
+    Mono<String> sendNotifyAprobado(Notificacion notificacion);
+
 }
