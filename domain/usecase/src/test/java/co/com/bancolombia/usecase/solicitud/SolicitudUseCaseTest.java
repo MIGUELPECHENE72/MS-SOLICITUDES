@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -176,8 +177,9 @@ class SolicitudUseCaseTest {
 
         Solicitud solicitud = createTestSolicitud(TEST_ID);
         solicitud.setEstado(2);
+        Notificacion notificacion = new Notificacion("1","SENDING");
 
-        when(solicitudUseCase.update(solicitud)).thenReturn(Mono.just(solicitud));
+        when(solicitudRepository.save(solicitud)).thenReturn(Mono.just(solicitud));
 
         Mono<Solicitud> result = solicitudUseCase.aprobarManual(solicitud);
 
@@ -306,6 +308,8 @@ class SolicitudUseCaseTest {
 
         when(solicitudRepository.findById(TEST_ID)).thenReturn(Mono.just(solicitud));
         when(solicitudRepository.save(solicitud)).thenReturn(Mono.just(solicitudModificado));
+        when(notificacionUseCase.sendNotifyAprobado(Mockito.any(Notificacion.class)))
+                .thenReturn(Mono.just("bdy78fdsnid"));
 
         Mono<Solicitud> result = solicitudUseCase.aprobarAutomatico(TEST_ID, updates);
 

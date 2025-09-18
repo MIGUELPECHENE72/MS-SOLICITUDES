@@ -61,4 +61,22 @@ class NotificacionUseCaseTest {
                 })
                 .verifyComplete();
     }
+
+    @Test
+    void mustSendNotifyAprobado(){
+
+        Notificacion notificacion = createNotificacion();
+
+        when(notificacionPublisher.sendNotifyAprobado(notificacion))
+                .thenReturn(Mono.just("a2ba2f5b-3bd8-4d8f-b99f-4f8b3e19eb85"));
+
+        Mono<String> result = notificacionUseCase.sendNotifyAprobado(notificacion);
+
+        StepVerifier.create(result)
+                .assertNext(id -> {
+                    assertNotNull(id);
+                    assertEquals("a2ba2f5b-3bd8-4d8f-b99f-4f8b3e19eb85", id);
+                })
+                .verifyComplete();
+    }
 }
