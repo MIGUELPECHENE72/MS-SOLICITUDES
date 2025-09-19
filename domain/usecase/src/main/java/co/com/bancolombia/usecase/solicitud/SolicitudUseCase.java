@@ -41,7 +41,8 @@ public class SolicitudUseCase {
         return solicitudRepository.save(solicitud)
                 .flatMap(saved -> {
                     if(saved.getEstado().equals(Estado.APROVADA.valor)){
-                        return notificacionUseCase.sendNotifyAprobado(new Notificacion("1","SENDING"))
+                        return notificacionUseCase.sendNotifyAprobado(
+                                new Notificacion(saved.getMonto().toPlainString(),"SENDING"))
                                 .then(Mono.just(saved));
                     }else{
                         return Mono.just(saved);
